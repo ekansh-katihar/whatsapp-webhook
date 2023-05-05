@@ -31,7 +31,7 @@ public class BasicUtils {
 		logger.log(PREFIX+"incoming json = " + json);
 		Map<String, Object> flattenJson = JsonFlattener.flattenAsMap(json);
 		logger.log(PREFIX+"map representation = ");
-		flattenJson.entrySet().stream().forEach(e -> logger.log(PREFIX+e.getKey() + ": " + e.getValue()));
+//		flattenJson.entrySet().stream().forEach(e -> logger.log(PREFIX+e.getKey() + ": " + e.getValue()));
 		return flattenJson;
 	}
 
