@@ -10,20 +10,22 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.json.simple.JSONObject;
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.registration.repository.UserInfoRepositoryImpl;
 
-import db.DynamoDB;
-import entity.UserNumber;
+import com.registration.entity.UserNumber;
 import openai.ChatGPT;
+import openai.SimpleChatGPT;
 import utils.BasicUtils;
 
 public class WebhookProcessor {
 	private final String PREFIX = this.getClass().getName() + " ";
-
+	private UserInfoRepositoryImpl userInfoRepository = UserInfoRepositoryImpl.getInstance();
 	@SuppressWarnings("unchecked")
 	public void whatsAppVerifyWebhookGET(Map<String, Object> requestParams, JSONObject responseJson,
 			LambdaLogger logger) {
@@ -58,11 +60,15 @@ public class WebhookProcessor {
 		String textBody = (String) flattenAsMap.get("entry[0].changes[0].value.messages[0].text.body");
 		String phoneNumber = (String) flattenAsMap.get("entry[0].changes[0].value.messages[0].from");
 		logger.log(PREFIX + "textBody = " + textBody+",phoneNumber =  " + phoneNumber);
-		UserNumber userNumber = new DynamoDB(logger).getUserNumber("user_number", phoneNumber);
-		if( !verifyUser(logger, userNumber)) {
-			return ; 
+		if(textBody == null ||phoneNumber == null ) return;
+		Optional<UserNumber> findByPhoneNumber = userInfoRepository.findByPhoneNumber(phoneNumber);
+		if(findByPhoneNumber.isEmpty() || !verifyUser(logger, findByPhoneNumber.get())){
+			return;
 		}
-		ChatGPT chat = new ChatGPT(logger);
+		UserNumber userNumber = findByPhoneNumber.get();
+		userNumber.setCalls(userNumber.getCalls()+1);
+		
+		SimpleChatGPT chat = new SimpleChatGPT(logger);
 		String aiResponse = chat.converse(textBody);
 		try {
 			String whatsAppResponse = sendMessage(aiResponse, phoneNumber);
@@ -70,7 +76,7 @@ public class WebhookProcessor {
 		} catch (IOException | InterruptedException | URISyntaxException e1) {
 			logger.log("Exception = " + BasicUtils.exceptionTrace(e1));
 		}
-
+		userInfoRepository.saveUserNumber(userNumber);
 	}
 
 	private boolean verifyUser(LambdaLogger logger, UserNumber userNumber) {

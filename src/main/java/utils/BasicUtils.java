@@ -24,7 +24,7 @@ import com.github.wnameless.json.flattener.JsonFlattener;
 public class BasicUtils {
 	private static final  String PREFIX = "utils.BasicUtils ";
 	public static LambdaLogger logger;
-
+	
 	public static Map<String, Object> getRequestParams(InputStream input) {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		String json = reader.lines().collect(Collectors.joining());

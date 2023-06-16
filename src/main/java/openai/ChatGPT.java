@@ -22,9 +22,10 @@ public class ChatGPT {
 		this.logger =  logger;
 	}
 
+	
 	public String converse(String textBody) {
 		logger.log(PREFIX+"Conversing with ChatGPT: "+textBody);
-		String token = "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";
+		String token =  System.getenv("CHATGPT_ENV");
 		OpenAiService service = new OpenAiService(token);
 
 		final List<ChatMessage> messages = new ArrayList<>();
@@ -54,7 +55,7 @@ public class ChatGPT {
 
 	public static void main(String[] args) {
 		ChatGPT ai = new ChatGPT(new LambdaLoggerImpl());
-		String converse = ai.converse("continue");
+		String converse = ai.converse("What is the difference between bonds and stocks");
 		System.out.println("======");
 		System.out.println(converse);
 	}
