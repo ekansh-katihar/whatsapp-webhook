@@ -1,0 +1,18 @@
+{
+  "accountId": "anonymous",
+  "timeEpoch": 1686972922074,
+  "routeKey": "$default",
+  "stage": "$default",
+  "domainPrefix": "ghw47lvx7hxjasc4rl3o3fxcce0rueyu",
+  "requestId": "be0ca549-6c69-455d-853a-91b8c4a672a2",
+  "domainName": "ghw47lvx7hxjasc4rl3o3fxcce0rueyu.lambda-url.us-east-2.on.aws",
+  "http": {
+    "path": "/webhook",
+    "protocol": "HTTP/1.1",
+    "method": "GET",
+    "sourceIp": "2a03:2880:27ff:76::face:b00c",
+    "userAgent": "facebookplatform/1.0 (+http://developers.facebook.com)"
+  },
+  "time": "17/Jun/2023:03:35:22 +0000",
+  "apiId": "ghw47lvx7hxjasc4rl3o3fxcce0rueyu"
+}

@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -24,24 +26,28 @@ import org.json.simple.JSONObject;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.google.gson.Gson;
 
+import api.WebhookProcessor;
 import io.reactivex.Flowable;
 import utils.BasicUtils;
 import utils.LambdaLoggerImpl;
 
 public class SimpleChatGPT {
-	private LambdaLogger logger;
+	private static final Logger logger = Logger.getLogger(SimpleChatGPT.class.getName());
+    static {
+    	logger.setLevel(BasicUtils.logLevel());
+    }
 	private String url ;
 	private String token;
 	private final String PREFIX = this.getClass().getName() + " ";
 
-	public SimpleChatGPT(LambdaLogger logger) {
-		this.logger = logger;
+	public SimpleChatGPT() {
+//		this.logger = logger;
 		url =  System.getenv("CHATGPT_URL");
 		token =  System.getenv("CHATGPT_TOKEN");
 		
 	}
 
-	public String converse(String text) {// Build input and API key params
+	public String converse(String text) throws Exception {// Build input and API key params
 		JSONObject payload = new JSONObject();
 		JSONObject message = new JSONObject();
 		JSONArray messageList = new JSONArray();
@@ -72,12 +78,12 @@ public class SimpleChatGPT {
 			return chatResponse;
 		} catch (Exception e) {
 			BasicUtils.exceptionTrace(e);
-			return "Error: " + e.getMessage();
+			throw new Exception("Error while interacting with ChatGPT");
 		}
 	}
 
-	public static void main(String[] args) {
-		SimpleChatGPT ai = new SimpleChatGPT(new LambdaLoggerImpl());
+	public static void main(String[] args) throws Exception {
+		SimpleChatGPT ai = new SimpleChatGPT();
 		String converse = ai.converse("What is the difference between bonds and stocks");
 		System.out.println("======");
 		System.out.println(converse);
