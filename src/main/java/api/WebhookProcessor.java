@@ -88,7 +88,7 @@ public class WebhookProcessor {
 
 		SimpleChatGPT chat = new SimpleChatGPT();
 		try {
-			String aiResponse = chat.converse(textBody);
+			String aiResponse = chat.converse(textBody,userNumber.getApiKey());
 			sendMessage(aiResponse, phoneNumber);
 			userInfoRepository.saveUserNumber(userNumber);
 			response.put(Constants.STATUS, Constants.STATUS_SUCCESS);
@@ -99,6 +99,8 @@ public class WebhookProcessor {
 			response.put(Constants.STATUS_CODE_INTERNAL, Constants.STATUS_FAIL);
 			response.put(Constants.STATUS_DESC, "Error at chatgpt or whatsapp");
 			response.put("statusCode", "200");// Expected by whatsapp
+			userNumber.setApiKey("");
+			userInfoRepository.saveUserNumber(userNumber);
 		}
 	}
 
@@ -178,8 +180,7 @@ public class WebhookProcessor {
 		HttpClient http = HttpClient.newHttpClient();
 		HttpResponse<String> response = http.send(request, BodyHandlers.ofString());
 		String body = response.body();
-		logger.log(Level.INFO, "Sent response on WhatsApp" );
-		logger.log(Level.FINE, "Sent response on WhatsApp "+body );
+		logger.log(Level.INFO, "Sent response on WhatsApp "+body );
 		return body;
 	}
 

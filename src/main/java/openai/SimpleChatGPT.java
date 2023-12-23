@@ -1,14 +1,6 @@
 package openai;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,13 +15,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.google.gson.Gson;
-
-import api.WebhookProcessor;
-import io.reactivex.Flowable;
 import utils.BasicUtils;
-import utils.LambdaLoggerImpl;
 
 public class SimpleChatGPT {
 	private static final Logger logger = Logger.getLogger(SimpleChatGPT.class.getName());
@@ -37,17 +23,14 @@ public class SimpleChatGPT {
     	logger.setLevel(BasicUtils.logLevel());
     }
 	private String url ;
-	private String token;
 	private final String PREFIX = this.getClass().getName() + " ";
 
 	public SimpleChatGPT() {
-//		this.logger = logger;
 		url =  System.getenv("CHATGPT_URL");
-		token =  System.getenv("CHATGPT_TOKEN");
-		
 	}
 
-	public String converse(String text) throws Exception {// Build input and API key params
+	public String converse(String text,String token) throws Exception {// Build input and API key params
+
 		JSONObject payload = new JSONObject();
 		JSONObject message = new JSONObject();
 		JSONArray messageList = new JSONArray();
@@ -84,7 +67,12 @@ public class SimpleChatGPT {
 
 	public static void main(String[] args) throws Exception {
 		SimpleChatGPT ai = new SimpleChatGPT();
-		String converse = ai.converse("What is the difference between bonds and stocks");
+		ai.url="https://api.openai.com/v1/chat/completions";
+		String apiKey = System.getProperty("API_KEY");
+		if(apiKey == null) {
+			System.out.println("set API_KEY obtained from openAI (or use information file) using -DAPI_KEY=sk-Q.........................");
+		}
+		String converse = ai.converse("What is the difference between bonds and stocks",apiKey);
 		System.out.println("======");
 		System.out.println(converse);
 	}

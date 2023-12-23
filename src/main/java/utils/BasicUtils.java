@@ -104,7 +104,7 @@ public class BasicUtils {
 	}
 
 	public static Level logLevel() {
-		String logLevel = System.getenv("LOGGING_LEVEL");
+		String logLevel = System.getenv("LOGGING_LEVEL") == null?"INFO": System.getenv("LOGGING_LEVEL");
 		Level level = Level.INFO;
 		switch(logLevel) {
 			case "INFO": level= Level.INFO; break;
