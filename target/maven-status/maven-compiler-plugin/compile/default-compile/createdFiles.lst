@@ -1,9 +1,10 @@
 api\Webhook.class
-db\JDBCConnection.class
 exceptions\NonRecoverableException.class
+openai\SimpleChatGPT.class
 api\WebhookProcessor.class
 utils\BasicUtils.class
 utils\TestMain.class
 utils\BasicUtils$2.class
-db\Range.class
+openai\ChatGPT.class
+utils\LambdaLoggerImpl.class
 utils\BasicUtils$1.class

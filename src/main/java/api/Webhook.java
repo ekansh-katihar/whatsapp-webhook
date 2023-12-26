@@ -1,61 +1,51 @@
 package api;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.util.HashMap;
 import java.util.Map;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
-import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
-import com.github.wnameless.json.flattener.JsonFlattener;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.reflect.TypeToken;
+import com.registration.utils.Constants;
 
 import utils.BasicUtils;
 
-public class Webhook implements RequestStreamHandler {
-	private final String PREFIX = this.getClass().getName()+" ";
-	private final String REQUEST_TYPE = "requestContext.http.method";
-	private final String REQUEST_PATH = "requestContext.http.path";
-	private final String isIncomingMessageKey = "entry[0].changes[0].value.messages[0].from";
-	@SuppressWarnings("unchecked")
+public class Webhook implements RequestHandler<Map<String, Object>, Map<String, String>> {
+	private final String PREFIX = this.getClass().getName() + " ";
+    private static final Logger logger = Logger.getLogger(Webhook.class.getName());
+    static {
+    	logger.setLevel(BasicUtils.logLevel());
+    }
 	@Override
-	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
+	public Map<String, String> handleRequest(Map<String, Object> requestParams, Context context) {
+		Map<String, String> response = new HashMap<>();
+		
 		WebhookProcessor processor = new WebhookProcessor();
-		JSONObject responseJson = new JSONObject();
-		LambdaLogger logger = context.getLogger();
-		BasicUtils.logger= logger;
-		logger.log(PREFIX+"Invoked Webhook.handleRequest");
-		Map<String, Object> requestParams = BasicUtils.getRequestParams(input);
-		if ( "GET".equals(requestParams.get(REQUEST_TYPE)) 
-				&& "/webhook".equals(requestParams.get(REQUEST_PATH))
-				) {
-			logger.log(PREFIX+"GET Invoked Webhook.handleRequest");
-			processor.whatsAppVerifyWebhookGET(requestParams, responseJson, logger);
-		}else if ( "POST".equals(requestParams.get(REQUEST_TYPE)) 
-				&& "/webhook".equals(requestParams.get(REQUEST_PATH))
-				) {
-			logger.log(PREFIX+"POST Invoked Webhook.handleRequest");
-			processor.whatsAppVerifyWebhookPOST(requestParams, responseJson, logger);
+		logger.log(Level.INFO , "Whatsapp WEBHOOK Invoked");
+		requestParams.entrySet().stream().forEach(e -> logger.log(Level.FINE ,PREFIX+e.getKey() + ": " + e.getValue()));
+		Map<String,Object>  queryStringParameters = (Map<String,Object>) requestParams.get("queryStringParameters");
+		Map<String,Object>  requestContext = (Map<String,Object>) requestParams.get("requestContext");
+		Map<String,Object>  httpMap = (Map<String,Object>) requestContext.get("http");
+		String method = (String)httpMap.get("method");
+		String path = (String)httpMap.get("path");
+		
+		if ("GET".equals(method) && "/webhook".equals(path)) {
+			logger.log(Level.INFO ,"GET Invoked Webhook.handleRequest");
+			processor.whatsAppVerifyWebhookGET(queryStringParameters, response);
+		} else if ("POST".equals(method)
+				&& "/webhook".equals(path)) {
+			logger.log(Level.INFO ,"POST Invoked Webhook.handleRequest");
+			processor.whatsAppVerifyWebhookPOST(requestParams, response);
 		}
-		
-		logger.log(PREFIX+"DONE");
-		
-		 
-		
-		
-
-		 
-		OutputStreamWriter writer = new OutputStreamWriter(output, "UTF-8");
-		writer.write(responseJson.toString());
-		writer.close();
-		logger.log(PREFIX+"RESPONDED");
+		logger.log(Level.INFO ,"Returning with "+response.get("statusCode")+"::"+response.get(Constants.STATUS_DESC));
+		return response;
 
 	}
-
-	
 
 }

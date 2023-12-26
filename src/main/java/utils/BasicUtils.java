@@ -11,6 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.json.simple.JSONObject;
@@ -21,17 +23,19 @@ import org.json.simple.parser.ParseException;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.github.wnameless.json.flattener.JsonFlattener;
 
+import api.Webhook;
+
 public class BasicUtils {
 	private static final  String PREFIX = "utils.BasicUtils ";
-	public static LambdaLogger logger;
-
+//	public static LambdaLogger logger;
+	private static final Logger logger = Logger.getLogger(BasicUtils.class.getName());
 	public static Map<String, Object> getRequestParams(InputStream input) {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		String json = reader.lines().collect(Collectors.joining());
-		logger.log(PREFIX+"incoming json = " + json);
+		logger.log(Level.FINE ,  "incoming json = " + json);
 		Map<String, Object> flattenJson = JsonFlattener.flattenAsMap(json);
-		logger.log(PREFIX+"map representation = ");
-//		flattenJson.entrySet().stream().forEach(e -> logger.log(PREFIX+e.getKey() + ": " + e.getValue()));
+		logger.log(Level.FINE ,  "map representation = ");
+//		flattenJson.entrySet().stream().forEach(e -> logger.log(Level.INFO ,  e.getKey() + ": " + e.getValue()));
 		return flattenJson;
 	}
 
@@ -91,18 +95,36 @@ public class BasicUtils {
 		};
 		try {
 			map = (Map) parser.parse(text, containerFactory);
-			map.forEach((k, v) -> logger.log("Key : " + k + " Value : " + v));
+			map.forEach((k, v) -> logger.log(Level.FINE,"Key : " + k + " Value : " + v));
 		} catch (ParseException pe) {
-			logger.log("position: " + pe.getPosition());
-			logger.log(exceptionTrace(pe));
+			logger.log(Level.WARNING,"position: " + pe.getPosition());
+			logger.log(Level.WARNING,exceptionTrace(pe));
 		}
 		return map;
 	}
 
+	public static Level logLevel() {
+		String logLevel = System.getenv("LOGGING_LEVEL") == null?"INFO": System.getenv("LOGGING_LEVEL");
+		Level level = Level.INFO;
+		switch(logLevel) {
+			case "INFO": level= Level.INFO; break;
+			case "FINE": level=  Level.FINE; break;
+			case "DEBUG": level=  Level.FINE; break;
+			case "WARNING": level=  Level.WARNING; break;
+			case "ERROR": level=  Level.SEVERE; break;
+			default: level = Level.INFO;
+		}
+		return level;
+	}
 	public static Map<String, String> getEnvVariable() {
 		Map<String, String> map = new HashMap<>();
+		
 		map.put("WHATSAPP_TOKEN", System.getenv("WHATSAPP_TOKEN"));
 		map.put("VERIFY_TOKEN", System.getenv("VERIFY_TOKEN"));
+		String getenv = System.getenv("LOGGING_LEVEL");
+		
+		map.put("LOGGING_LEVEL", System.getenv("LOGGING_LEVEL")==null ||System.getenv("LOGGING_LEVEL").isBlank()
+					?"INFO":System.getenv("LOGGING_LEVEL"));
 		return map;
 	}
 
